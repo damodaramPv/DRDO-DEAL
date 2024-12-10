@@ -1,0 +1,71 @@
+clear
+cl
+rolloff = 0:0.05:1;
+bw = [];
+
+for i = 1:length(rolloff)
+% Parameters
+dataRate = 2.5e6;                
+M = 2;                 
+symbolRate = dataRate / M; % Symbol rate (symbols per second)
+
+samplesPerSymbol = 8;
+rolloff = rolloff(i);
+span = 15;
+numSymbols = 1000;
+
+% Sampling frequency
+Fs = symbolRate * samplesPerSymbol;
+Ts = 1 / Fs;
+
+% dataBits = valuesScript('RTL_data/message_input_newone.dat'); 
+
+dataBits = randi([0,1], 512, 1);
+dqpskMod = comm.DQPSKModulator('BitInput', true,'PhaseRotation', 5*pi/4);
+dqpskDemod = comm.DQPSKDemodulator('BitOutput', true,'PhaseRotation', 5*pi/4);
+
+modSymbols = dqpskMod(dataBits);
+
+
+% Upsample symbols
+upsampledSymbols = upsample(modSymbols, samplesPerSymbol);
+
+% Design RRC filter
+rrcFilter = rcosdesign(rolloff, span, samplesPerSymbol);
+
+% Apply pulse shaping
+shapedSignal = conv(upsampledSymbols, rrcFilter, 'same');
+
+% Time vector
+numSamples = length(shapedSignal);
+timeVector = (0:numSamples-1) * Ts; % Time vector in seconds
+
+% Demodulation
+% Filter the received signal with the same RRC filter
+filteredSignal = conv(shapedSignal, rrcFilter, 'same');
+
+% Downsample to symbol rate
+downsampledSignal = filteredSignal(1:samplesPerSymbol:end);
+demodSymbols = dqpskDemod(downsampledSignal);
+
+% Calculate bandwidth
+signalFFT = abs(fftshift(fft(shapedSignal)));  % FFT of the signal
+frequencies = linspace(-Fs/2, Fs/2, length(signalFFT));
+powerSpectralDensity = signalFFT.^2;
+
+% Calculate 99% bandwidth
+cumulativePower = cumsum(powerSpectralDensity) / sum(powerSpectralDensity);
+lowerIndex = find(cumulativePower >= 0.005, 1);
+upperIndex = find(cumulativePower >= 0.995, 1);
+bandwidth = frequencies(upperIndex) - frequencies(lowerIndex);
+
+bw = [bw bandwidth];
+end
+
+figure(1)
+plot(rolloff, bw);
+title('Bandwidth vs rolloff');
+xlabel('Rolloff factor'); ylabel('Bandwidth of trasmitted signal');
+
+
+
