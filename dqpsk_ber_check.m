@@ -11,6 +11,7 @@ snr_values = EbNo + 3 + 10*log10(k); % Converting Eb/No to SNR
 
 simulated_ber_dqpsk = zeros(1, length(snr_values));    % Simulated BER
 simulated_ber_qpsk = zeros(1, length(snr_values)); 
+numErrors = zeros(1, length(snr_values)); 
 M = 2;
 numBits = num_symbols *M;
 dataBits = randi([0,1], numBits, 1);
@@ -19,10 +20,11 @@ for i = 1:length(snr_values)
     snr_dB = snr_values(i);  % Current SNR value
     EbNo_i = EbNo(i);        % Current Eb/No Value
 
-    ber_dqpsk = dqpsk_ber(dataBits, snr_dB);
+    [ber_dqpsk,numerr] = dqpsk_ber(dataBits, snr_dB);
     ber_qpsk = qpsk_ber(dataBits, snr_dB);
     % Store the simulated BER
     simulated_ber_dqpsk(i) = ber_dqpsk;
+    numErrors(i)= numerr;
     simulated_ber_qpsk(i) = ber_qpsk;
 end
 
@@ -55,7 +57,7 @@ y = modSymbols + noise;
 
 demodBits = pskdemod(y,4,pi/4);
 
-[~, ber] = biterr(dataBits, demodBits);
+[numErros, ber] = biterr(dataBits, demodBits);
 end
 
 
@@ -63,7 +65,7 @@ end
 
 
 
-function ber = dqpsk_ber(dataBits,snr_dB)
+function [ber,numerros] = dqpsk_ber(dataBits,snr_dB)
 
 
 % dataBits = valuesScript('RTL_data/message_input_newone.dat'); 
@@ -84,5 +86,5 @@ y = modSymbols + noise;
 
 demodBits = dqpskDemod(y);
 
-[~, ber] = biterr(dataBits, demodBits);
+[numerros, ber] = biterr(dataBits, demodBits);
 end

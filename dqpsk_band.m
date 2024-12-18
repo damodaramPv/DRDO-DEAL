@@ -7,18 +7,18 @@ dataRate = 2.5e6;
 M = 2;                 
 symbolRate = dataRate / M; % Symbol rate (symbols per second)
 
-samplesPerSymbol = 8;
+samplesPerSymbol = 4;
 rolloff = 0.35;
-span = 6;
+span = 5;
 numSymbols = 1000;
 
 % Sampling frequency
 Fs = symbolRate * samplesPerSymbol;
 Ts = 1 / Fs;
 
-% dataBits = valuesScript('RTL_data/message_input_newone.dat'); 
+dataBits = valuesScript('RTL_data/message_input_newone.dat'); 
 
-dataBits = randi([0,1], 512, 1);
+% dataBits = randi([0,1], 512, 1);
 dqpskMod = comm.DQPSKModulator('BitInput', true,'PhaseRotation', 5*pi/4);
 dqpskDemod = comm.DQPSKDemodulator('BitOutput', true,'PhaseRotation', 5*pi/4);
 
@@ -106,9 +106,31 @@ subplot(2,1,2)
 stem(timeVector * 1e6, imag(diff));
 title('Error in Demodulated Symbols(Imaginary)');
 xlabel('Amplitude'); ylabel('Samples');
-
-
+%{
+load('C:\Users\panna\OneDrive\Desktop\Study\comms pro\Drdo\RTL_data\RTL_raised_cosine.mat')
 figure(5)
+plot(timeVector * 1e6,real(decimalValues),'ro-','LineWidth', 1.25); 
+title('RTL Tx after RRC');
+xlabel('Amplitude'); ylabel('Time (\mus)'); hold on
+plot(timeVector * 1e6,real(shapedSignal),'bo-','LineWidth', 1.25); 
+title('Matlab Tx after RRC');
+xlabel('Amplitude'); ylabel('Time (\mus)'); hold off 
+%}
+% stem(timeVector * 1e6,real(decimalValues)); 
+% title('RTL Tx after RRC');
+% xlabel('Amplitude'); ylabel('Time (\mus)'); 
+% stem(timeVector * 1e6,real(shapedSignal)); 
+% title('Matlab Tx after RRC');
+% xlabel('Amplitude'); ylabel('Time (\mus)'); 
+load('C:\Users\panna\OneDrive\Desktop\Study\comms pro\Drdo\RTL_data\RTL_Demod_RRC_k.mat')
+figure(5)
+plot(timeVector * 1e6,real(decimalValues(14:141)),'ro-','LineWidth', 1.25); 
+title('RTL Rx after RRC'); hold on
+plot(timeVector * 1e6,imag(filteredSignal),'bo-','LineWidth', 1.25); 
+title('Matlab Rx after RRC');
+xlabel('Time (\mus)'); ylabel('Amplitude'); hold off 
+
+figure(6)
 plot(real(downsampledSignal),imag(downsampledSignal));
 title('Demodulated Symbols');
 xlabel('Real Part'); ylabel('Imaginary Part');

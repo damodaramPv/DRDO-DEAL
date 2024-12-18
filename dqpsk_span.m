@@ -73,5 +73,21 @@ figure(2)
 plot(span, bitErr);
 title('Span vs Biterror rate');
 xlabel('No. of symbols'); ylabel('BER');
+figure(3)
+plot(real(downsampledSignal),imag(downsampledSignal));
+title('Demodulated Symbols');
+xlabel('Real Part'); ylabel('Imaginary Part');
+figure(4)
+% Time vector
+numSamples = length(shapedSignal);
+timeVector = (0:numSamples-1) * Ts; % Time vector in seconds
+subplot(2,1,1)
+plot(timeVector * 1e6, real(shapedSignal));
+title('Pulse Shaped Signal (Real Part)');
+xlabel('Time (\mus)'); ylabel('Amplitude');
+subplot(2,1,2)
+plot(timeVector * 1e6, imag(shapedSignal));
+title('Pulse Shaped Signal (Imaginary)');
+xlabel('Time (\mus)'); ylabel('Amplitude');
 
 
